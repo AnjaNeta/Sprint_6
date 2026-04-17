@@ -37,4 +37,17 @@ class BasePage:
         element = self.driver.find_element(*locator)
         self.driver.execute_script("arguments[0].scrollIntoView();", element)
 
+    def get_current_url(self):
+        # Возвращает текущий URL страницы
+        return self.driver.current_url
+    
+    def find_element(self, locator):
+        # Находит элемент на странице
+        return self.driver.find_element(*locator)
+    
+    def get_current_window_handle(self):
+    # Возвращает идентификатор текущего окна
+        return self.driver.current_window_handle
+
+
         

@@ -1,8 +1,5 @@
 import allure
-import time
-from selenium.webdriver.common.by import By
 from pages.main_page import MainPage
-from pages.locators import MainPageLocators
 
 
 @allure.feature("Навигация")
@@ -17,41 +14,27 @@ class TestNavigation:
             main_page.click_scooter_logo()
         
         with allure.step("Проверить, что текущий URL — главная страница"):
-            assert driver.current_url == "https://qa-scooter.praktikum-services.ru/", \
-                f"Ожидался URL 'https://qa-scooter.praktikum-services.ru/', получен '{driver.current_url}'"
+            assert main_page.is_on_main_page(), \
+                f"Ожидался URL 'https://qa-scooter.praktikum-services.ru/', получен '{main_page.get_current_url()}'"
     
     @allure.title("Проверка перехода на главную страницу Дзена при клике на логотип 'Яндекс'")
     def test_yandex_logo_redirects_to_dzen(self, driver):
         # При клике на логотип 'Яндекс' в новом окне открывается главная страница Дзена
-        original_window = driver.current_window_handle
+        main_page = MainPage(driver)
+        original_window = main_page.get_current_window_handle()
         
-        with allure.step("Найти ссылку логотипа Яндекса и получить href"):
-            yandex_link = driver.find_element(By.CSS_SELECTOR, "a.Header_LogoYandex__3TSOI")
-            link = yandex_link.get_attribute("href")
+        with allure.step("Получить ссылку из логотипа Яндекса"):
+            link = main_page.get_yandex_logo_link()
         
-        with allure.step("Проверить, что ссылка получена"):
-            assert link is not None, "Ссылка на логотип Яндекса не найдена"
-            if link.startswith("//"):
-                link = "https:" + link
-        
-        with allure.step("Открыть ссылку в новой вкладке через JavaScript"):
-            driver.execute_script(f"window.open('{link}', '_blank');")
-            time.sleep(1)
-            
-            # Переключаемся на новую вкладку
-            for handle in driver.window_handles:
-                if handle != original_window:
-                    driver.switch_to.window(handle)
-                    break
+        with allure.step("Открыть ссылку в новой вкладке"):
+            main_page.open_link_in_new_tab(link)
+            main_page.switch_to_new_window(original_window)
         
         with allure.step("Проверить, что открылась страница Дзена"):
-            current_url = driver.current_url
-            assert "dzen.ru" in current_url or "yandex.ru" in current_url, \
-                f"Ожидался URL, содержащий 'dzen.ru' или 'yandex.ru', получен '{current_url}'"
+            assert main_page.is_on_dzen_page() or main_page.is_on_yandex_page(), \
+                f"Ожидался URL, содержащий 'dzen.ru' или 'yandex.ru', получен '{main_page.get_current_url()}'"
         
         with allure.step("Закрыть новое окно и вернуться обратно"):
-            driver.close()
-            driver.switch_to.window(original_window)
+            main_page.close_current_window_and_switch_back(original_window)
 
             
-
